@@ -23,7 +23,7 @@ SessionLocal = sessionmaker(
     bind=engine,
 )
 
-Base = declarative_base()
+from app.database.base import Base
 
 
 def get_db():

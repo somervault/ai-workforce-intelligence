@@ -1,1 +1,5 @@
-from app.database.session import Base
+from sqlalchemy.orm import DeclarativeBase
+
+
+class Base(DeclarativeBase):
+    pass
