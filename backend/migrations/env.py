@@ -8,6 +8,7 @@ from app.database.base import Base
 
 # Import models so Alembic can detect them
 from app.models.department import Department
+from app.models.employee import Employee
 
 config = context.config
 

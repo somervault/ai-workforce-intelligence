@@ -2,7 +2,7 @@ import uuid
 
 from sqlalchemy import DateTime, String, func
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database.base import Base
 
@@ -36,4 +36,8 @@ class Department(Base):
         DateTime(timezone=True),
         server_default=func.now(),
         onupdate=func.now(),
+    )
+
+    employees: Mapped[list["Employee"]] = relationship(
+        back_populates="department",
     )
