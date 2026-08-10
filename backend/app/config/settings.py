@@ -33,6 +33,14 @@ class Settings(BaseSettings):
     openai_api_key: str = ""
     gemini_api_key: str = ""
 
+    # -------------------------
+    # Jira Cloud
+    # -------------------------
+    jira_base_url: str = ""
+    jira_email: str = ""
+    jira_api_token: str = ""
+    jira_request_timeout_seconds: float = 10.0
+
     model_config = SettingsConfigDict(
         env_file=".env",
         case_sensitive=False,
