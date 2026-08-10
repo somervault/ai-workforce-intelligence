@@ -41,6 +41,14 @@ class Settings(BaseSettings):
     jira_api_token: str = ""
     jira_request_timeout_seconds: float = 10.0
 
+    # -------------------------
+    # GitHub
+    # -------------------------
+    github_api_base_url: str = "https://api.github.com"
+    github_token: str = ""
+    github_org: str = ""
+    github_request_timeout_seconds: float = 10.0
+
     model_config = SettingsConfigDict(
         env_file=".env",
         case_sensitive=False,
