@@ -3,7 +3,7 @@ from datetime import date, datetime
 
 from sqlalchemy import Date, DateTime, String, Text, func
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database.base import Base
 
@@ -22,6 +22,9 @@ class Project(Base):
     status: Mapped[str] = mapped_column(String(20), nullable=False)
     start_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     end_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    employee_assignments: Mapped[list["EmployeeProject"]] = relationship(
+        back_populates="project",
+    )
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
