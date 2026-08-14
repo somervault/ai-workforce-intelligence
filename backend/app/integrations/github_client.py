@@ -86,6 +86,9 @@ class GitHubClient:
     def get_authenticated_user(self) -> dict[str, Any]:
         return self._json_object(self._request("GET", "user"))
 
+    def get_user_by_id(self, user_id: str) -> dict[str, Any]:
+        return self._json_object(self._request("GET", f"user/{user_id}"))
+
     def get_repositories(
         self,
         page_size: int = DEFAULT_PAGE_SIZE,

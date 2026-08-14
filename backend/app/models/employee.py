@@ -58,6 +58,9 @@ class Employee(Base):
     assigned_tasks: Mapped[list["Task"]] = relationship(
         back_populates="assigned_employee",
     )
+    external_identities: Mapped[list["EmployeeExternalIdentity"]] = relationship(
+        back_populates="employee",
+    )
 
     created_at: Mapped[DateTime] = mapped_column(
         DateTime(timezone=True),

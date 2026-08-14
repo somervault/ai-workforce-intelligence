@@ -1,6 +1,7 @@
 from fastapi import FastAPI
-
+from app.api.workforce import router as workforce_router
 from app.api.employee import router as employee_router
+from app.api.employee_external_identity import router as employee_external_identity_router
 from app.api.employee_project import router as employee_project_router
 from app.api.project import router as project_router
 from app.api.task import router as task_router
@@ -12,10 +13,11 @@ app = FastAPI(
 )
 
 app.include_router(employee_router)
+app.include_router(employee_external_identity_router)
 app.include_router(employee_project_router)
 app.include_router(project_router)
 app.include_router(task_router)
-
+app.include_router(workforce_router)
 
 @app.get("/")
 def root():

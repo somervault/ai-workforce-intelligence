@@ -49,6 +49,22 @@ class Settings(BaseSettings):
     github_org: str = ""
     github_request_timeout_seconds: float = 10.0
 
+    # -------------------------
+    # Workforce Analysis
+    # -------------------------
+    workforce_analysis_window_days: int = 30
+    workforce_due_soon_days: int = 7
+    workforce_open_task_weight: float = 45.0
+    workforce_due_date_weight: float = 25.0
+    workforce_active_project_weight: float = 20.0
+    workforce_completion_relief_weight: float = 10.0
+    workforce_internal_activity_weight: float = 35.0
+    workforce_jira_activity_weight: float = 30.0
+    workforce_github_activity_weight: float = 35.0
+    workforce_underloaded_threshold: float = 35.0
+    workforce_overloaded_threshold: float = 70.0
+    workforce_external_max_results: int = 25
+
     model_config = SettingsConfigDict(
         env_file=".env",
         case_sensitive=False,

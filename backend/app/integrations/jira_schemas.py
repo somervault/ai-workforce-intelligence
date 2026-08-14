@@ -10,6 +10,11 @@ class JiraProjectDTO(BaseModel):
     project_type: str | None = None
 
 
+class JiraAccountDTO(BaseModel):
+    account_id: str
+    active: bool = True
+
+
 class JiraIssueDTO(BaseModel):
     id: str
     key: str

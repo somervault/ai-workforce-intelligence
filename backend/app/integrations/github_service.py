@@ -27,10 +27,16 @@ class GitHubService:
     def get_authenticated_user(self) -> GitHubUserDTO:
         return self._user_from_raw(self.client.get_authenticated_user())
 
-    def get_repositories(self) -> list[GitHubRepositoryDTO]:
+    def verify_user_id(self, user_id: str) -> GitHubUserDTO:
+        user = self._user_from_raw(self.client.get_user_by_id(user_id))
+        if str(user.id) != user_id:
+            raise GitHubMalformedResponseError("GitHub returned a different user ID")
+        return user
+
+    def get_repositories(self, **pagination: int) -> list[GitHubRepositoryDTO]:
         return [
             self._repository_from_raw(repository)
-            for repository in self.client.get_repositories()
+            for repository in self.client.get_repositories(**pagination)
         ]
 
     def get_commits(
@@ -39,32 +45,33 @@ class GitHubService:
         repo: str,
         since: datetime | None = None,
         until: datetime | None = None,
+        **pagination: int,
     ) -> list[GitHubCommitDTO]:
         return [
             self._commit_from_raw(commit)
-            for commit in self.client.get_commits(owner, repo, since, until)
+            for commit in self.client.get_commits(owner, repo, since, until, **pagination)
         ]
 
     def get_pull_requests(
-        self, owner: str, repo: str
+        self, owner: str, repo: str, **pagination: int
     ) -> list[GitHubPullRequestDTO]:
         return [
             self._pull_request_from_raw(pull_request)
-            for pull_request in self.client.get_pull_requests(owner, repo)
+            for pull_request in self.client.get_pull_requests(owner, repo, **pagination)
         ]
 
     def get_pull_request_reviews(
-        self, owner: str, repo: str, pull_number: int
+        self, owner: str, repo: str, pull_number: int, **pagination: int
     ) -> list[GitHubPullRequestReviewDTO]:
         return [
             self._review_from_raw(review)
-            for review in self.client.get_pull_request_reviews(owner, repo, pull_number)
+            for review in self.client.get_pull_request_reviews(owner, repo, pull_number, **pagination)
         ]
 
-    def get_contributors(self, owner: str, repo: str) -> list[GitHubContributorDTO]:
+    def get_contributors(self, owner: str, repo: str, **pagination: int) -> list[GitHubContributorDTO]:
         return [
             self._contributor_from_raw(contributor)
-            for contributor in self.client.get_contributors(owner, repo)
+            for contributor in self.client.get_contributors(owner, repo, **pagination)
         ]
 
     @staticmethod
@@ -110,7 +117,9 @@ class GitHubService:
             raise GitHubMalformedResponseError("Commit committer data must be an object or null")
         return GitHubCommitDTO(
             sha=GitHubService._required_string(commit, "sha"),
+            author_id=GitHubService._optional_int(author, "id") if author else None,
             author_login=GitHubService._optional_string(author, "login") if author else None,
+            committer_id=(GitHubService._optional_int(committer, "id") if committer else None),
             committer_login=(
                 GitHubService._optional_string(committer, "login") if committer else None
             ),
@@ -136,6 +145,7 @@ class GitHubService:
             title=GitHubService._required_string(pull_request, "title"),
             state=GitHubService._required_string(pull_request, "state"),
             draft=GitHubService._required_bool(pull_request, "draft"),
+            author_id=GitHubService._optional_int(user, "id") if user else None,
             author_login=GitHubService._optional_string(user, "login") if user else None,
             created_at=GitHubService._optional_string(pull_request, "created_at"),
             updated_at=GitHubService._optional_string(pull_request, "updated_at"),
@@ -150,6 +160,7 @@ class GitHubService:
         return GitHubPullRequestReviewDTO(
             id=GitHubService._required_int(review, "id"),
             state=GitHubService._required_string(review, "state"),
+            reviewer_id=GitHubService._optional_int(user, "id") if user else None,
             reviewer_login=GitHubService._optional_string(user, "login") if user else None,
             submitted_at=GitHubService._optional_string(review, "submitted_at"),
         )
@@ -188,6 +199,17 @@ class GitHubService:
         if not isinstance(result, int) or isinstance(result, bool):
             raise GitHubMalformedResponseError(
                 f"GitHub response field '{field_name}' must be an integer"
+            )
+        return result
+
+    @staticmethod
+    def _optional_int(value: dict[str, Any], field_name: str) -> int | None:
+        result = value.get(field_name)
+        if result is None:
+            return None
+        if not isinstance(result, int) or isinstance(result, bool):
+            raise GitHubMalformedResponseError(
+                f"GitHub response field '{field_name}' must be an integer or null"
             )
         return result
 

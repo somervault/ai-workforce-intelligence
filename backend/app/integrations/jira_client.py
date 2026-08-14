@@ -101,12 +101,15 @@ class JiraClient:
         return projects
 
     def search_issues(
-        self, jql: str, page_size: int = 50
+        self, jql: str, page_size: int = 50, max_pages: int = 10, max_results: int = 500
     ) -> list[dict[str, Any]]:
+        if not 1 <= page_size <= 100 or max_pages < 1 or max_results < 1:
+            raise JiraMalformedResponseError("Invalid issue search pagination limits")
         issues: list[dict[str, Any]] = []
         next_page_token: str | None = None
+        pages_fetched = 0
 
-        while True:
+        while pages_fetched < max_pages and len(issues) < max_results:
             payload: dict[str, Any] = {
                 "jql": jql,
                 "fields": ISSUE_FIELDS,
@@ -118,7 +121,8 @@ class JiraClient:
             response = self._request_json(
                 "POST", "rest/api/3/search/jql", json=payload
             )
-            issues.extend(self._list_value(response, "issues"))
+            issues.extend(self._list_value(response, "issues")[: max_results - len(issues)])
+            pages_fetched += 1
             next_page_token = response.get("nextPageToken")
             if next_page_token is None:
                 break
@@ -134,20 +138,27 @@ class JiraClient:
             params={"fields": ",".join(ISSUE_FIELDS)},
         )
 
+    def get_user(self, account_id: str) -> dict[str, Any]:
+        return self._request_json("GET", "rest/api/3/user", params={"accountId": account_id})
+
     def get_issue_changelog(
-        self, issue_id_or_key: str, page_size: int = 50
+        self, issue_id_or_key: str, page_size: int = 50, max_pages: int = 10, max_results: int = 500
     ) -> list[dict[str, Any]]:
+        if not 1 <= page_size <= 100 or max_pages < 1 or max_results < 1:
+            raise JiraMalformedResponseError("Invalid changelog pagination limits")
         changes: list[dict[str, Any]] = []
         start_at = 0
+        pages_fetched = 0
 
-        while True:
+        while pages_fetched < max_pages and len(changes) < max_results:
             response = self._request_json(
                 "GET",
                 f"rest/api/3/issue/{issue_id_or_key}/changelog",
                 params={"startAt": start_at, "maxResults": page_size},
             )
             values = self._list_value(response, "values")
-            changes.extend(values)
+            changes.extend(values[: max_results - len(changes)])
+            pages_fetched += 1
 
             if response.get("isLast") is True:
                 break

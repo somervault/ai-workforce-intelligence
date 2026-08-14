@@ -9,6 +9,7 @@ from app.database.base import Base
 # Import models so Alembic can detect them
 from app.models.department import Department
 from app.models.employee import Employee
+from app.models.employee_external_identity import EmployeeExternalIdentity
 from app.models.employee_project import EmployeeProject
 from app.models.project import Project
 from app.models.task import Task

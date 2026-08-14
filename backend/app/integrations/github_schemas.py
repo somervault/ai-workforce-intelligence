@@ -22,7 +22,9 @@ class GitHubRepositoryDTO(BaseModel):
 
 class GitHubCommitDTO(BaseModel):
     sha: str
+    author_id: int | None = None
     author_login: str | None = None
+    committer_id: int | None = None
     committer_login: str | None = None
     authored_at: datetime | None = None
     committed_at: datetime | None = None
@@ -33,6 +35,7 @@ class GitHubPullRequestDTO(BaseModel):
     title: str
     state: str
     draft: bool
+    author_id: int | None = None
     author_login: str | None = None
     created_at: datetime | None = None
     updated_at: datetime | None = None
@@ -42,6 +45,7 @@ class GitHubPullRequestDTO(BaseModel):
 class GitHubPullRequestReviewDTO(BaseModel):
     id: int
     state: str
+    reviewer_id: int | None = None
     reviewer_login: str | None = None
     submitted_at: datetime | None = None
 

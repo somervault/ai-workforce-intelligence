@@ -3,6 +3,7 @@ from typing import Any
 from app.config.settings import settings
 from app.integrations.jira_client import JiraClient, JiraMalformedResponseError
 from app.integrations.jira_schemas import (
+    JiraAccountDTO,
     JiraChangelogItemDTO,
     JiraIssueActivityDTO,
     JiraIssueDTO,
@@ -24,16 +25,37 @@ class JiraService:
     def get_projects(self) -> list[JiraProjectDTO]:
         return [self._project_from_raw(project) for project in self.client.get_projects()]
 
-    def search_issues(self, jql: str = "order by updated DESC") -> list[JiraIssueDTO]:
-        return [self._issue_from_raw(issue) for issue in self.client.search_issues(jql)]
+    def verify_account_id(self, account_id: str) -> JiraAccountDTO:
+        account = self.client.get_user(account_id)
+        returned_id = self._required_string(account, "accountId")
+        if returned_id != account_id:
+            raise JiraMalformedResponseError("Jira returned a different account ID")
+        active = account.get("active", True)
+        if not isinstance(active, bool):
+            raise JiraMalformedResponseError("Jira account active flag must be boolean")
+        return JiraAccountDTO(account_id=returned_id, active=active)
+
+    def search_issues(
+        self, jql: str = "order by updated DESC", page_size: int = 50,
+        max_pages: int = 10, max_results: int = 500,
+    ) -> list[JiraIssueDTO]:
+        return [
+            self._issue_from_raw(issue)
+            for issue in self.client.search_issues(jql, page_size, max_pages, max_results)
+        ]
 
     def get_issue(self, issue_id_or_key: str) -> JiraIssueDTO:
         return self._issue_from_raw(self.client.get_issue(issue_id_or_key))
 
-    def get_issue_activity(self, issue_id_or_key: str) -> list[JiraIssueActivityDTO]:
+    def get_issue_activity(
+        self, issue_id_or_key: str, page_size: int = 50,
+        max_pages: int = 10, max_results: int = 500,
+    ) -> list[JiraIssueActivityDTO]:
         return [
             self._activity_from_raw(activity)
-            for activity in self.client.get_issue_changelog(issue_id_or_key)
+            for activity in self.client.get_issue_changelog(
+                issue_id_or_key, page_size, max_pages, max_results
+            )
         ]
 
     @staticmethod
